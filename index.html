@@ -376,7 +376,39 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
 
 @media (max-width:600px){#galeria{padding:3.5rem 1.2rem;} .galeria-grid img, .gallery-grid img{height:140px;}}
 
-/* ===== GALERÍA UNIFORME ===== */
+/* ===== RESERVACIONES TEXT ===== */
+.res-desc{font-size:1.05rem;line-height:1.75;color:var(--charcoal);opacity:0.85;margin-bottom:2rem;}
+.res-highlights{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+.res-hl{display:flex;align-items:center;gap:0.7rem;background:var(--white);border:1px solid rgba(139,99,71,0.2);padding:0.8rem 1rem;border-radius:4px;}
+.res-hl span{font-size:1.4rem;flex-shrink:0;}
+.res-hl p{font-size:0.82rem;font-weight:600;letter-spacing:0.04em;color:var(--dark-earth);margin:0;}
+.res-cta-big{
+  display:block;text-align:center;
+  background:linear-gradient(135deg,var(--earth),var(--dark-earth));
+  color:var(--white);
+  font-family:'Raleway',sans-serif;font-size:1rem;font-weight:700;
+  letter-spacing:0.18em;text-transform:uppercase;text-decoration:none;
+  padding:1.2rem 2rem;margin-bottom:1.5rem;
+  border-radius:4px;
+  box-shadow:0 6px 24px rgba(92,61,46,0.35);
+  transition:transform 0.2s,box-shadow 0.2s;
+  animation:pulse-cta 2.5s ease-in-out infinite;
+}
+.res-cta-big:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(92,61,46,0.5);}
+@keyframes pulse-cta{
+  0%,100%{box-shadow:0 6px 24px rgba(92,61,46,0.35);}
+  50%{box-shadow:0 6px 32px rgba(139,99,71,0.6);}
+}
+.res-contact-mini{display:flex;gap:0.8rem;flex-wrap:wrap;}
+.res-contact-mini a{
+  font-size:0.78rem;font-weight:600;letter-spacing:0.08em;
+  color:var(--earth);text-decoration:none;
+  border:1px solid rgba(139,99,71,0.3);
+  padding:0.5rem 0.9rem;border-radius:3px;
+  transition:background 0.2s,color 0.2s;
+}
+.res-contact-mini a:hover{background:var(--earth);color:var(--white);}
+
 #galeria{background:var(--charcoal);padding:6rem 0;}
 .gal-inner{padding:0 3rem;}
 #galeria .section-label{color:var(--sand);display:block;text-align:center;}
@@ -989,17 +1021,13 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
 <!-- RESERVACIONES -->
 <section id="reservaciones">
   <div class="res-text">
-    <span class="section-label">Agenda tu Visita</span>
-    <h2 class="section-title">Haz tu <em>Reservación</em></h2>
+    <span class="section-label">Reservaciones</span>
+    <h2 class="section-title">Vive la Experiencia<br><em>Rancho Rocha</em></h2>
     <div class="divider"></div>
-    <p>Agenda tu experiencia en Rancho Rocha. Contáctanos para conocer disponibilidad, paquetes y opciones personalizadas.</p>
-    <p>Estamos listos para ayudarte a crear la experiencia perfecta para tu familia, grupo de amigos o empresa.</p>
-    <div class="contact-chips">
-      <a href="tel:6861708868" class="chip">📞 686 170 8868</a>
-      <a href="https://wa.me/526861708868" class="chip">💬 WhatsApp</a>
-      <a href="mailto:yulycaballitos@hotmail.com" class="chip">✉️ yulycaballitos@hotmail.com</a>
-      <a href="https://www.facebook.com/yulycaballitos" target="_blank" class="chip">📘 Facebook</a>
-    </div>
+
+    <p class="res-desc">Descubre paseos a caballo, momentos especiales y experiencias auténticas en un entorno natural único. Completa el formulario y permítenos ayudarte a planear una visita inolvidable.</p>
+
+
   </div>
   <div class="res-form">
     <h3>Solicitar Información</h3>
@@ -1060,7 +1088,7 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
 </footer>
 
 <script>
-// Hero slideshow
+// ── Hero slideshow ─────────────────────────────────────────
 let currentSlide = 0;
 const slides = document.querySelectorAll('.hero-slide');
 function nextSlide() {
@@ -1070,7 +1098,7 @@ function nextSlide() {
 }
 setInterval(nextSlide, 5000);
 
-// Lightbox for gallery
+// ── Lightbox galería ───────────────────────────────────────
 document.querySelectorAll('.uniform-grid .gi').forEach(function(item){
   item.addEventListener('click', function(){
     var img = this.querySelector('img');
@@ -1083,26 +1111,8 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape') document.getElementById('lightbox').classList.remove('active');
 });
 
-// WhatsApp form
-
-  var texto = '🐴 *Nueva Solicitud — Rancho Rocha*\n\n'
-    + '👤 *Nombre:* ' + nombre + '\n'
-    + '📞 *Teléfono:* ' + telefono + '\n'
-    + (email        ? '✉️ *Correo:* ' + email + '\n' : '')
-    + (experiencia  ? '🎯 *Experiencia:* ' + experiencia + '\n' : '')
-    + (fecha        ? '📅 *Fecha:* ' + fecha + '\n' : '')
-    + (personas     ? '👥 *Personas:* ' + personas + '\n' : '')
-    + (mensaje      ? '💬 *Mensaje:* ' + mensaje : '');
-
-  var url = 'https://wa.me/526861708868?text=' + encodeURIComponent(texto);
-  window.open(url, '_blank');
-}
-</script>
-
-<script>
+// ── Formulario → WhatsApp ──────────────────────────────────
 function enviarWhatsApp() {
-
-  // ── Captura de campos ──────────────────────────────
   var nombre      = (document.getElementById('f-nombre')      || {}).value || '';
   var telefono    = (document.getElementById('f-telefono')    || {}).value || '';
   var email       = (document.getElementById('f-email')       || {}).value || '';
@@ -1114,29 +1124,25 @@ function enviarWhatsApp() {
   nombre   = nombre.trim();
   telefono = telefono.trim();
 
-  // ── Validación mínima ──────────────────────────────
   if (!nombre || !telefono) {
     alert('⚠️ Por favor ingresa al menos tu nombre y teléfono.');
     return;
   }
 
-  // ── Formato del mensaje ────────────────────────────
   var texto =
     '🐴 *SOLICITUD DE RESERVA — RANCHO ROCHA*\n'
   + '━━━━━━━━━━━━━━━━━━━━━━\n\n'
-  + '👤 *Nombre:* '       + nombre      + '\n'
-  + '📞 *Teléfono:* '     + telefono    + '\n'
-  + (email       ? '✉️ *Correo:* '       + email       + '\n' : '')
-  + (experiencia ? '🎯 *Experiencia:* '  + experiencia + '\n' : '')
-  + (fecha       ? '📅 *Fecha deseada:* '+ fecha       + '\n' : '')
-  + (personas    ? '👥 *Personas:* '     + personas    + '\n' : '')
-  + (mensaje     ? '\n💬 *Mensaje:*\n' + mensaje           : '')
+  + '👤 *Nombre:* '        + nombre      + '\n'
+  + '📞 *Teléfono:* '      + telefono    + '\n'
+  + (email       ? '✉️ *Correo:* '        + email       + '\n' : '')
+  + (experiencia ? '🎯 *Experiencia:* '   + experiencia + '\n' : '')
+  + (fecha       ? '📅 *Fecha deseada:* ' + fecha       + '\n' : '')
+  + (personas    ? '👥 *Personas:* '      + personas    + '\n' : '')
+  + (mensaje     ? '\n💬 *Mensaje:*\n'  + mensaje           : '')
   + '\n\n━━━━━━━━━━━━━━━━━━━━━━'
   + '\n_Enviado desde Rancho Rocha_';
 
-  // ── Abre WhatsApp (celular + WhatsApp Web) ─────────
-  var url = 'https://wa.me/526861708868?text=' + encodeURIComponent(texto);
-  window.open(url, '_blank');
+  window.open('https://wa.me/526861708868?text=' + encodeURIComponent(texto), '_blank');
 }
 </script>
 </body>
