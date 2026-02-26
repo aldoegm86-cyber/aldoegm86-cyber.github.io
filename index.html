@@ -1054,4 +1054,65 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
   <p>© 2025 Rancho Rocha · Galope Escuela Ecuestre · Ciudad Coahuila, B.C.</p>
   <div class="footer-social">
     <a href="#" title="Instagram">ig</a>
-    <a href="#" title="Fac
+        <a href="https://www.facebook.com/yulycaballitos" target="_blank" title="Facebook">fb</a>
+    <a href="https://wa.me/526861708868" title="WhatsApp">wa</a>
+  </div>
+</footer>
+
+<script>
+// Hero slideshow
+let currentSlide = 0;
+const slides = document.querySelectorAll('.hero-slide');
+function nextSlide() {
+  slides[currentSlide].classList.remove('active');
+  currentSlide = (currentSlide + 1) % slides.length;
+  slides[currentSlide].classList.add('active');
+}
+setInterval(nextSlide, 5000);
+
+// Lightbox for gallery
+document.querySelectorAll('.uniform-grid .gi').forEach(function(item){
+  item.addEventListener('click', function(){
+    var img = this.querySelector('img');
+    document.getElementById('lb-img').src = img.src;
+    document.getElementById('lb-img').alt = img.alt;
+    document.getElementById('lightbox').classList.add('active');
+  });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') document.getElementById('lightbox').classList.remove('active');
+});
+
+// WhatsApp form
+function enviarWhatsApp() {
+  var nombre      = (document.getElementById('f-nombre') || {}).value || '';
+  var telefono    = (document.getElementById('f-telefono') || {}).value || '';
+  var email       = (document.getElementById('f-email') || {}).value || '';
+  var experiencia = (document.getElementById('f-experiencia') || {}).value || '';
+  var fecha       = (document.getElementById('f-fecha') || {}).value || '';
+  var personas    = (document.getElementById('f-personas') || {}).value || '';
+  var mensaje     = (document.getElementById('f-mensaje') || {}).value || '';
+
+  nombre    = nombre.trim();
+  telefono  = telefono.trim();
+
+  if (!nombre || !telefono) {
+    alert('Por favor ingresa al menos tu nombre y teléfono.');
+    return;
+  }
+
+  var texto = '🐴 *Nueva Solicitud — Rancho Rocha*\n\n'
+    + '👤 *Nombre:* ' + nombre + '\n'
+    + '📞 *Teléfono:* ' + telefono + '\n'
+    + (email        ? '✉️ *Correo:* ' + email + '\n' : '')
+    + (experiencia  ? '🎯 *Experiencia:* ' + experiencia + '\n' : '')
+    + (fecha        ? '📅 *Fecha:* ' + fecha + '\n' : '')
+    + (personas     ? '👥 *Personas:* ' + personas + '\n' : '')
+    + (mensaje      ? '💬 *Mensaje:* ' + mensaje : '');
+
+  var url = 'https://wa.me/526861708868?text=' + encodeURIComponent(texto);
+  window.open(url, '_blank');
+}
+</script>
+</body>
+</html>
