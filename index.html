@@ -515,6 +515,67 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
   #testimonios{padding:4rem 1.5rem;}
   .testimonios-grid{grid-template-columns:1fr;}
 }
+
+/* ===== TARIFAS ===== */
+.tarifas-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1.8rem;
+  margin-bottom:2.5rem;
+}
+.trf-card{
+  background:#fff;
+  border:1px solid rgba(139,99,71,0.15);
+  border-radius:8px;
+  padding:2rem 1.8rem;
+  display:flex;flex-direction:column;
+  box-shadow:0 4px 18px rgba(44,36,22,0.07);
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.trf-card:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(44,36,22,0.13);}
+.trf-card--featured{border:2px solid var(--earth);background:var(--white);}
+.trf-icon{font-size:2.2rem;margin-bottom:0.8rem;}
+.trf-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--dark-earth);margin-bottom:0.6rem;line-height:1.3;}
+.trf-badge{display:inline-block;background:var(--earth);color:#fff;font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0.25rem 0.7rem;border-radius:20px;margin-bottom:0.8rem;}
+.trf-price{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:var(--earth);line-height:1;margin-bottom:0.1rem;}
+.trf-price span{font-size:1rem;font-weight:400;color:var(--earth);opacity:0.7;}
+.trf-price-dual{display:flex;align-items:center;gap:1rem;margin-bottom:0.1rem;}
+.trf-price-dual strong{font-family:'Playfair Display',serif;font-size:2rem;color:var(--earth);font-weight:700;}
+.trf-price-dual .trf-cur{font-size:0.85rem;color:var(--earth);opacity:0.7;}
+.trf-price-dual .trf-day{display:block;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#9a8070;margin-bottom:0.2rem;}
+.trf-sep{font-size:1.5rem;color:rgba(139,99,71,0.25);align-self:center;}
+.trf-from{font-size:0.75rem;color:#9a8070;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.2rem;}
+.trf-details{list-style:none;padding:0;margin:0 0 1.5rem;flex:1;}
+.trf-details li{font-size:0.85rem;color:#6a5a4a;padding:0.4rem 0;border-bottom:1px solid rgba(139,99,71,0.08);padding-left:1rem;position:relative;}
+.trf-details li::before{content:"·";position:absolute;left:0;color:var(--earth);}
+.trf-btn{
+  display:block;text-align:center;margin-top:auto;
+  background:var(--earth);color:#fff;
+  font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  text-decoration:none;padding:0.75rem 1rem;border-radius:4px;
+  transition:background 0.2s;
+}
+.trf-btn:hover{background:var(--dark-earth);}
+.trf-btn--dark{background:var(--dark-earth);white-space:nowrap;align-self:center;flex-shrink:0;}
+.trf-special{
+  display:flex;align-items:center;gap:1.5rem;
+  background:linear-gradient(135deg,var(--dark-earth),var(--earth));
+  padding:2rem 2.5rem;border-radius:8px;
+  color:#fff;margin-top:1rem;
+}
+.trf-special-icon{font-size:2.5rem;flex-shrink:0;}
+.trf-special h4{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff;margin-bottom:0.4rem;}
+.trf-special p{font-size:0.9rem;color:rgba(255,255,255,0.82);line-height:1.6;margin:0;}
+.trf-special .trf-btn--dark{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);}
+.trf-special .trf-btn--dark:hover{background:rgba(255,255,255,0.28);}
+@media(max-width:960px){
+  .tarifas-grid{grid-template-columns:1fr 1fr;}
+  #tarifas{padding:4rem 1.5rem;}
+  .trf-special{flex-direction:column;text-align:center;}
+}
+@media(max-width:600px){
+  .tarifas-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -530,6 +591,7 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
     <li><a href="#servicios">Servicios</a></li>
     <li><a href="#corporativas">Corporativo</a></li>
     <li><a href="#gastronomia">Gastronomía</a></li>
+    <li><a href="#tarifas">Tarifas</a></li>
     <li><a href="#testimonios">Testimonios</a></li>
     <li><a href="#galeria">Galería</a></li>
     <li><a href="#ubicacion">Ubicación</a></li>
@@ -889,6 +951,117 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
         </ul>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- TARIFAS -->
+<section id="tarifas" style="background:var(--cream);padding:6rem 4rem;">
+  <div style="max-width:1200px;margin:0 auto;">
+    <span class="section-label" style="display:block;text-align:center;">Lo que ofrecemos</span>
+    <h2 class="section-title" style="text-align:center;color:var(--dark-earth);">Experiencias y <em>Tarifas</em></h2>
+    <div class="divider" style="margin:0 auto 1rem;"></div>
+    <p style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:#7a6a5a;margin-bottom:3.5rem;">Vive Rancho Rocha a tu manera. Elige la experiencia que más te inspire.</p>
+
+    <div class="tarifas-grid">
+
+      <!-- Paseos -->
+      <div class="trf-card">
+        <div class="trf-icon">🌅</div>
+        <h3 class="trf-title">Paseos a Caballo</h3>
+        <div class="trf-price">$450 <span>MXN</span></div>
+        <p class="trf-from">desde</p>
+        <ul class="trf-details">
+          <li>Duración aprox. 45 a 60 minutos</li>
+          <li>El costo puede variar según la duración y tipo de recorrido</li>
+        </ul>
+        <a href="#reservaciones" class="trf-btn">Solicitar información</a>
+      </div>
+
+      <!-- Clases -->
+      <div class="trf-card">
+        <div class="trf-icon">🐎</div>
+        <h3 class="trf-title">Clases de Equitación</h3>
+        <div class="trf-badge">Principiantes</div>
+        <div class="trf-price">$650 <span>MXN</span></div>
+        <p class="trf-from">desde / por clase</p>
+        <ul class="trf-details">
+          <li>Duración aprox. 1 hora 20 minutos</li>
+          <li>Instrucción personalizada</li>
+          <li>Fundamentos básicos de monta</li>
+        </ul>
+        <a href="#reservaciones" class="trf-btn">Solicitar información</a>
+      </div>
+
+      <!-- Equinoterapia -->
+      <div class="trf-card">
+        <div class="trf-icon">🧠</div>
+        <h3 class="trf-title">Equinoterapia</h3>
+        <div class="trf-price">$700 <span>MXN</span></div>
+        <p class="trf-from">por sesión</p>
+        <ul class="trf-details">
+          <li>Bienestar y coordinación</li>
+          <li>Desarrollo integral</li>
+          <li>Sesiones personalizadas</li>
+        </ul>
+        <a href="#reservaciones" class="trf-btn">Solicitar información</a>
+      </div>
+
+      <!-- Caballeriza -->
+      <div class="trf-card">
+        <div class="trf-icon">🐴</div>
+        <h3 class="trf-title">Renta de Caballeriza</h3>
+        <div class="trf-price">$4,500 <span>MXN</span></div>
+        <p class="trf-from">mensuales</p>
+        <ul class="trf-details">
+          <li>Espacio seguro y adecuado</li>
+          <li>Cuidado y resguardo del caballo</li>
+        </ul>
+        <a href="#reservaciones" class="trf-btn">Solicitar información</a>
+      </div>
+
+      <!-- Eventos -->
+      <div class="trf-card trf-card--featured">
+        <div class="trf-icon">🎉</div>
+        <h3 class="trf-title">Renta del Rancho para Eventos</h3>
+        <div class="trf-price-dual">
+          <div><span class="trf-day">Lun – Jue</span><strong>$2,000</strong><span class="trf-cur">MXN</span></div>
+          <div class="trf-sep">|</div>
+          <div><span class="trf-day">Vie – Dom</span><strong>$3,000</strong><span class="trf-cur">MXN</span></div>
+        </div>
+        <p class="trf-from">desde</p>
+        <ul class="trf-details">
+          <li>Costos varían según áreas y servicios requeridos</li>
+        </ul>
+        <a href="#reservaciones" class="trf-btn">Solicitar información</a>
+      </div>
+
+      <!-- Cabeza -->
+      <div class="trf-card">
+        <div class="trf-icon">🍖</div>
+        <h3 class="trf-title">Orden de Cabeza a la Leña</h3>
+        <div class="trf-badge">por Chelelo</div>
+        <div class="trf-price">$4,000 <span>MXN</span></div>
+        <p class="trf-from">desde</p>
+        <ul class="trf-details">
+          <li>Servicio para 20 a 25 personas</li>
+          <li>Atendido personalmente por Chelelo</li>
+          <li>Ideal para reuniones privadas y experiencias gastronómicas campestres</li>
+        </ul>
+        <a href="#reservaciones" class="trf-btn">Solicitar información</a>
+      </div>
+
+    </div>
+
+    <!-- Servicios especiales -->
+    <div class="trf-special">
+      <div class="trf-special-icon">✨</div>
+      <div>
+        <h4>Servicios Especiales</h4>
+        <p>Para servicios personalizados, experiencias especiales o eventos corporativos, favor de solicitar cotización.</p>
+      </div>
+      <a href="#reservaciones" class="trf-btn trf-btn--dark">Solicitar cotización</a>
+    </div>
+
   </div>
 </section>
 
