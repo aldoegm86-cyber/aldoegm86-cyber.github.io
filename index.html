@@ -465,6 +465,56 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
   .uniform-grid{grid-template-columns:repeat(2,1fr);gap:3px;}
 }
 
+
+/* ===== TESTIMONIOS ===== */
+.testimonios-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:2rem;
+}
+.tcard{
+  background:#3a2518;
+  border:1px solid rgba(212,184,150,0.25);
+  border-radius:6px;
+  padding:2.5rem;
+  position:relative;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.tcard:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.3);}
+.tcard::before{
+  content:'"';
+  font-family:'Playfair Display',serif;
+  font-size:8rem;line-height:0;
+  color:var(--sand);opacity:0.15;
+  position:absolute;top:3rem;left:1.5rem;
+  pointer-events:none;
+}
+.tcard-stars{color:#f0c040;font-size:1.1rem;margin-bottom:1.4rem;letter-spacing:0.15em;}
+.tcard-text{
+  color:#e8ddd0 !important;
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem;
+  line-height:1.9;
+  margin-bottom:0.9rem;
+}
+.tcard-author{
+  display:flex;align-items:center;gap:1rem;
+  margin-top:2rem;padding-top:1.5rem;
+  border-top:1px solid rgba(212,184,150,0.2);
+}
+.tcard-avatar{
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,var(--earth),#8B4513);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Raleway',sans-serif;font-size:0.9rem;font-weight:700;
+  color:#fff !important;flex-shrink:0;letter-spacing:0.05em;
+}
+.tcard-name{display:block;color:#f5efe0 !important;font-size:0.95rem;font-weight:700;margin-bottom:0.2rem;}
+.tcard-role{font-size:0.73rem;color:var(--sand) !important;letter-spacing:0.1em;text-transform:uppercase;}
+@media(max-width:960px){
+  #testimonios{padding:4rem 1.5rem;}
+  .testimonios-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -843,27 +893,43 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
 </section>
 
 <!-- TESTIMONIOS -->
-<section id="testimonios" style="background:var(--charcoal);padding:6rem 4rem;">
-  <div style="max-width:900px;margin:0 auto;">
-    <span class="section-label" style="color:var(--sand);display:block;text-align:center;">Lo que dicen nuestros alumnos</span>
+<section id="testimonios" style="background:var(--dark-earth);padding:6rem 4rem;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <span class="section-label" style="color:var(--sand);display:block;text-align:center;margin-bottom:0.5rem;">Lo que dicen nuestros alumnos</span>
     <h2 class="section-title" style="color:var(--cream);text-align:center;margin-bottom:0.5rem;">Experiencias en <em style="color:var(--sand)">Escuela Galope</em></h2>
-    <div class="divider" style="margin:0 auto 3rem;background:linear-gradient(to right,var(--sand),transparent);"></div>
+    <div class="divider" style="margin:0 auto 3rem;"></div>
 
+    <!-- GRID DE TESTIMONIOS — agrega más .tcard aquí abajo -->
     <div class="testimonios-grid">
 
+      <!-- ── Testimonio 1 ── -->
       <div class="tcard">
         <div class="tcard-stars">★★★★★</div>
-        <p class="tcard-text">"Recomiendo ampliamente la Escuela Galope a quienes desean iniciar o fortalecer su formación en equitación. Comencé como principiante y, desde el primer día, Yuly Rocha demostró una paciencia excepcional, profesionalismo y un genuino compromiso con la enseñanza.</p>
-        <p class="tcard-text">Gracias a su guía logré superar el miedo inicial y aprender los principios fundamentales de la monta, siempre bajo un enfoque de disciplina, seguridad y respeto hacia los caballos.</p>
-        <p class="tcard-text">Más que una clase, fue una experiencia que me permitió descubrir un mundo apasionante donde el caballo es el verdadero protagonista y el aprendizaje se convierte en crecimiento personal."</p>
+        <p class="tcard-text">"Recomiendo ampliamente la Escuela Galope a quienes desean iniciar o fortalecer su formación en equitación. Comencé como principiante y, desde el primer día, Yuly Rocha demostró una paciencia excepcional, profesionalismo y un genuino compromiso con la enseñanza."</p>
+        <p class="tcard-text">"Gracias a su guía logré superar el miedo inicial y aprender los principios fundamentales de la monta, siempre bajo un enfoque de disciplina, seguridad y respeto hacia los caballos."</p>
+        <p class="tcard-text">"Más que una clase, fue una experiencia que me permitió descubrir un mundo apasionante donde el caballo es el verdadero protagonista y el aprendizaje se convierte en crecimiento personal."</p>
         <div class="tcard-author">
           <div class="tcard-avatar">AG</div>
           <div>
-            <strong>Aldo González</strong>
-            <span>Alumno de Escuela Galope</span>
+            <strong class="tcard-name">Aldo González</strong>
+            <span class="tcard-role">Alumno de Escuela Galope</span>
           </div>
         </div>
       </div>
+
+      <!-- ── Testimonio 2 — PLANTILLA (elimina este comentario cuando agregues uno) ──
+      <div class="tcard">
+        <div class="tcard-stars">★★★★★</div>
+        <p class="tcard-text">"Escribe aquí el comentario del alumno."</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar">XX</div>
+          <div>
+            <strong class="tcard-name">Nombre Apellido</strong>
+            <span class="tcard-role">Alumno de Escuela Galope</span>
+          </div>
+        </div>
+      </div>
+      ── -->
 
     </div>
   </div>
