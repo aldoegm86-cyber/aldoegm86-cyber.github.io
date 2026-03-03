@@ -591,8 +591,11 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
     <li><a href="#servicios">Servicios</a></li>
     <li><a href="#corporativas">Corporativo</a></li>
     <li><a href="#gastronomia">Gastronomía</a></li>
+    <li><a href="#juego">🐴 Juego</a></li>
+    <li><a href="#juego">Juego</a></li>
     <li><a href="#tarifas">Tarifas</a></li>
     <li><a href="#testimonios">Testimonios</a></li>
+    <li><a href="#juego">🎮 Juego</a></li>
     <li><a href="#galeria">Galería</a></li>
     <li><a href="#ubicacion">Ubicación</a></li>
     <li><a href="#reservaciones" class="nav-cta">Reservar</a></li>
@@ -951,6 +954,447 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
         </ul>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- JUEGO -->
+<section id="juego" style="background:#1a0f05;padding:5rem 2rem;">
+  <div style="max-width:900px;margin:0 auto;text-align:center;">
+    <span class="section-label" style="color:var(--sand);display:block;margin-bottom:0.5rem;">Mini Juego</span>
+    <h2 class="section-title" style="color:var(--cream);margin-bottom:0.3rem;">🐴 Carrera de <em style="color:var(--sand)">Barriles</em></h2>
+    <p style="color:rgba(245,239,224,0.6);font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:2rem;">
+      Presiona <strong style="color:var(--sand)">ESPACIO</strong> o toca la pantalla para saltar los barriles 🪣
+    </p>
+
+    <div style="position:relative;display:inline-block;width:100%;max-width:860px;">
+      <canvas id="barrelCanvas" width="860" height="220"
+        style="width:100%;border-radius:8px;cursor:pointer;display:block;background:#2c1a0a;"></canvas>
+
+      <!-- Overlay inicio -->
+      <div id="gameOverlay" style="
+        position:absolute;inset:0;display:flex;flex-direction:column;
+        align-items:center;justify-content:center;
+        background:rgba(20,10,2,0.82);border-radius:8px;">
+        <div style="font-size:3rem;margin-bottom:0.5rem;">🐴</div>
+        <p style="color:var(--cream);font-family:'Playfair Display',serif;font-size:1.4rem;margin:0 0 0.3rem;">¡Listo para correr!</p>
+        <p style="color:var(--sand);font-size:0.85rem;margin:0 0 1.5rem;">ESPACIO · ENTER · TAP</p>
+        <button onclick="startGame()" style="
+          background:var(--earth);color:#fff;border:none;
+          font-family:'Raleway',sans-serif;font-size:0.8rem;font-weight:700;
+          letter-spacing:0.15em;text-transform:uppercase;
+          padding:0.8rem 2.5rem;border-radius:4px;cursor:pointer;">
+          ¡Jugar!
+        </button>
+      </div>
+    </div>
+
+    <p id="gameScore" style="color:var(--sand);font-family:'Raleway',sans-serif;font-size:0.85rem;letter-spacing:0.15em;margin-top:1rem;display:none;">
+      BARRILES: <span id="scoreNum">0</span> &nbsp;|&nbsp; RÉCORD: <span id="bestNum">0</span>
+    </p>
+  </div>
+</section>
+
+<script>
+(function(){
+  const canvas  = document.getElementById('barrelCanvas');
+  const ctx     = canvas.getContext('2d');
+  const overlay = document.getElementById('gameOverlay');
+  const scoreEl = document.getElementById('gameScore');
+  const scoreNum= document.getElementById('scoreNum');
+  const bestNum = document.getElementById('bestNum');
+
+  let W, H, running, raf;
+  let score, best = 0;
+  let speed, frameCount;
+  let horse, barrels, dust, clouds;
+
+  /* ── Resize canvas ── */
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    W = canvas.width  = rect.width  * window.devicePixelRatio;
+    H = canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+
+  /* ── Horse object ── */
+  function makeHorse() {
+    return {
+      x: 90, y: 0,
+      vy: 0, onGround: true,
+      legPhase: 0,
+      dead: false,
+      get ground(){ return H/window.devicePixelRatio - 60; },
+      jump() {
+        if (this.onGround) { this.vy = -13; this.onGround = false; }
+      },
+      update() {
+        if (!this.onGround) {
+          this.vy += 0.6;
+          this.y  += this.vy;
+          if (this.y >= this.ground) {
+            this.y = this.ground; this.vy = 0; this.onGround = true;
+          }
+        } else {
+          this.y = this.ground;
+        }
+        if (this.onGround) this.legPhase += speed * 0.18;
+      },
+      draw() {
+        const cx = this.x, cy = this.y;
+        const s  = this.dead ? 0.9 : 1;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(s, s);
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.beginPath();
+        ctx.ellipse(0, 2, 22, 5, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        const lp = this.legPhase;
+
+        // Legs (4 legs animated)
+        ctx.strokeStyle = '#c8a060'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+        const legs = [
+          {ox:-12, phase:0},   {ox:-4,  phase:Math.PI},
+          {ox: 4,  phase:Math.PI/2}, {ox:12, phase:3*Math.PI/2}
+        ];
+        legs.forEach(l => {
+          const a = Math.sin(lp + l.phase) * 8;
+          ctx.beginPath();
+          ctx.moveTo(l.ox, -8);
+          ctx.lineTo(l.ox + a*0.4, 8);
+          ctx.stroke();
+          // Hoof
+          ctx.fillStyle = '#6b4c2a';
+          ctx.beginPath();
+          ctx.ellipse(l.ox + a*0.4, 9, 3, 2, 0, 0, Math.PI*2);
+          ctx.fill();
+        });
+
+        // Body
+        ctx.fillStyle = '#c8903a';
+        ctx.beginPath();
+        ctx.ellipse(0, -14, 22, 11, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // Neck
+        ctx.fillStyle = '#c8903a';
+        ctx.beginPath();
+        ctx.moveTo(16, -20); ctx.lineTo(26, -32);
+        ctx.lineTo(22, -34); ctx.lineTo(12, -22);
+        ctx.closePath(); ctx.fill();
+
+        // Head
+        ctx.fillStyle = '#d4a050';
+        ctx.beginPath();
+        ctx.ellipse(28, -34, 10, 7, -0.3, 0, Math.PI*2);
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = this.dead ? '#ff4444' : '#222';
+        ctx.beginPath();
+        ctx.arc(33, -37, 2, 0, Math.PI*2);
+        ctx.fill();
+        if (!this.dead) {
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(34, -37.5, 0.8, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Nostril
+        ctx.fillStyle = '#8b5a2a';
+        ctx.beginPath(); ctx.arc(36, -33, 1.5, 0, Math.PI*2); ctx.fill();
+
+        // Ear
+        ctx.fillStyle = '#c8903a';
+        ctx.beginPath();
+        ctx.moveTo(23,-39); ctx.lineTo(21,-46); ctx.lineTo(26,-41);
+        ctx.closePath(); ctx.fill();
+
+        // Mane
+        ctx.fillStyle = '#7a4a10';
+        for(let i=0;i<4;i++){
+          ctx.beginPath();
+          ctx.ellipse(20-i*3, -38+i*2, 3, 5, 0.4, 0, Math.PI*2);
+          ctx.fill();
+        }
+
+        // Tail
+        const tailWag = Math.sin(lp * 1.2) * 10;
+        ctx.strokeStyle = '#7a4a10'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-20, -18);
+        ctx.quadraticCurveTo(-34, -10 + tailWag, -28, 2 + tailWag);
+        ctx.stroke();
+
+        if (this.dead) {
+          ctx.fillStyle = 'rgba(255,60,60,0.25)';
+          ctx.beginPath(); ctx.arc(0,-20,28,0,Math.PI*2); ctx.fill();
+        }
+
+        ctx.restore();
+      },
+      hitbox(){ return {x:this.x-14, y:this.y-30, w:32, h:32}; }
+    };
+  }
+
+  /* ── Barrel object ── */
+  function makeBarrel(x) {
+    const colors = ['#d44','#f80','#2a9'];
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    return {
+      x, color: c,
+      get y(){ return H/window.devicePixelRatio - 58; },
+      w: 22, h: 32,
+      update(){ this.x -= speed; },
+      draw(){
+        const bx = this.x, by = this.y;
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(bx+11, by+34, 14, 4, 0, 0, Math.PI*2);
+        ctx.fill();
+        // Barrel body
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, this.w, this.h, 3);
+        ctx.fill();
+        // Staves
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1.5;
+        for(let i=1;i<4;i++){
+          ctx.beginPath();
+          ctx.moveTo(bx+i*(this.w/4), by+4);
+          ctx.lineTo(bx+i*(this.w/4), by+this.h-4);
+          ctx.stroke();
+        }
+        // Top ring
+        ctx.strokeStyle = '#999'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.ellipse(bx+this.w/2, by+4, this.w/2, 4, 0, 0, Math.PI*2);
+        ctx.stroke();
+        // Bottom ring
+        ctx.beginPath();
+        ctx.ellipse(bx+this.w/2, by+this.h-4, this.w/2, 4, 0, 0, Math.PI*2);
+        ctx.stroke();
+        // Top cap
+        ctx.fillStyle = '#bbb';
+        ctx.beginPath();
+        ctx.ellipse(bx+this.w/2, by+4, this.w/2, 4, 0, 0, Math.PI*2);
+        ctx.fill();
+      },
+      hitbox(){ return {x:this.x+3, y:this.y+2, w:this.w-6, h:this.h-4}; }
+    };
+  }
+
+  /* ── Dust particle ── */
+  function makeDust(x,y){
+    return { x, y, vx:-1-Math.random()*2, vy:-1-Math.random()*2,
+             life:1, r:2+Math.random()*4,
+             update(){ this.x+=this.vx; this.y+=this.vy; this.vy+=0.1; this.life-=0.05; },
+             draw(){
+               ctx.globalAlpha = this.life*0.5;
+               ctx.fillStyle='#c8a060';
+               ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill();
+               ctx.globalAlpha=1;
+             }};
+  }
+
+  /* ── Collision ── */
+  function rects(a,b){
+    return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
+  }
+
+  /* ── Draw ground ── */
+  function drawGround(){
+    const gY = H/window.devicePixelRatio - 48;
+    // Dirt
+    ctx.fillStyle = '#5c3a1a';
+    ctx.fillRect(0, gY, W/window.devicePixelRatio, 48);
+    // Top line
+    ctx.strokeStyle = '#8b6030'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,gY); ctx.lineTo(W/window.devicePixelRatio,gY); ctx.stroke();
+    // Track marks (dashed)
+    ctx.strokeStyle = 'rgba(255,200,100,0.12)'; ctx.lineWidth = 1;
+    ctx.setLineDash([20,15]);
+    ctx.beginPath(); ctx.moveTo(0,gY+16); ctx.lineTo(W/window.devicePixelRatio,gY+16); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  /* ── Draw sky ── */
+  function drawSky(){
+    const grad = ctx.createLinearGradient(0,0,0,H/window.devicePixelRatio - 48);
+    grad.addColorStop(0,'#1a0f05');
+    grad.addColorStop(1,'#3d2010');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W/window.devicePixelRatio,H/window.devicePixelRatio - 48);
+  }
+
+  /* ── Main loop ── */
+  function loop(){
+    if (!running) return;
+    const cW = W/window.devicePixelRatio, cH = H/window.devicePixelRatio;
+    ctx.clearRect(0,0,cW,cH);
+
+    frameCount++; speed = 5 + Math.floor(frameCount/200)*0.5;
+
+    drawSky();
+
+    // Clouds (just simple ellipses for stars)
+    clouds.forEach(c => {
+      c.x -= 0.3;
+      if (c.x < -20) c.x = cW + 20;
+      ctx.fillStyle = `rgba(255,220,150,${c.a})`;
+      ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill();
+    });
+
+    drawGround();
+
+    // Spawn barrels
+    if (frameCount % Math.max(60, 110 - Math.floor(frameCount/100)*3) === 0) {
+      barrels.push(makeBarrel(cW + 10));
+    }
+
+    // Dust
+    if (horse.onGround && frameCount % 4 === 0) {
+      dust.push(makeDust(horse.x - 15, horse.y + 5));
+    }
+    dust = dust.filter(d => d.life > 0);
+    dust.forEach(d => { d.update(); d.draw(); });
+
+    // Barrels
+    barrels = barrels.filter(b => b.x > -40);
+    barrels.forEach(b => {
+      b.update(); b.draw();
+      if (!horse.dead && rects(horse.hitbox(), b.hitbox())) {
+        horse.dead = true;
+        setTimeout(gameOver, 600);
+      }
+    });
+
+    // Score
+    if (frameCount % 10 === 0 && !horse.dead) {
+      score++;
+      if (score > best) best = score;
+      scoreNum.textContent = score;
+      bestNum.textContent  = best;
+    }
+
+    // Speed indicator color
+    const speedText = speed > 8 ? '⚡ ¡GALOPE!' : speed > 6.5 ? '🏃 Trote' : '🐴 Paso';
+    ctx.fillStyle = 'rgba(245,220,150,0.5)';
+    ctx.font = '600 12px Raleway, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(speedText, cW - 12, 24);
+    ctx.textAlign = 'left';
+
+    horse.update();
+    horse.draw();
+
+    raf = requestAnimationFrame(loop);
+  }
+
+  /* ── Start / Stop ── */
+  window.startGame = function(){
+    resize();
+    overlay.style.display = 'none';
+    scoreEl.style.display = 'block';
+    running = true; frameCount = 0; score = 0; speed = 5;
+    horse   = makeHorse(); horse.y = horse.ground;
+    barrels = []; dust = [];
+    clouds  = Array.from({length:30}, () => ({
+      x: Math.random() * (W/window.devicePixelRatio),
+      y: Math.random() * (H/window.devicePixelRatio - 80),
+      r: 0.5 + Math.random()*1.5,
+      a: 0.2 + Math.random()*0.5
+    }));
+    scoreNum.textContent = '0';
+    if (raf) cancelAnimationFrame(raf);
+    loop();
+  };
+
+  function gameOver(){
+    running = false;
+    cancelAnimationFrame(raf);
+    const cW = W/window.devicePixelRatio, cH = H/window.devicePixelRatio;
+    ctx.fillStyle = 'rgba(10,5,0,0.7)';
+    ctx.fillRect(0,0,cW,cH);
+    ctx.fillStyle = '#f5efe0';
+    ctx.font = 'bold 22px Playfair Display, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('¡Golpeaste un barril! 🪣', cW/2, cH/2 - 28);
+    ctx.font = '600 14px Raleway, sans-serif';
+    ctx.fillStyle = '#d4a050';
+    ctx.fillText('Barriles: ' + score + '  |  Récord: ' + best, cW/2, cH/2 + 2);
+    ctx.fillStyle = 'rgba(245,239,224,0.6)';
+    ctx.font = '13px Raleway, sans-serif';
+    ctx.fillText('ESPACIO · ENTER · TAP para intentar de nuevo', cW/2, cH/2 + 30);
+    ctx.textAlign = 'left';
+  }
+
+  /* ── Controls ── */
+  function jump(){
+    if (!running) { startGame(); return; }
+    horse.jump();
+  }
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); jump(); }
+  });
+  canvas.addEventListener('click',  jump);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); jump(); }, {passive:false});
+
+  window.addEventListener('resize', () => { if (running) resize(); });
+
+  // Initial draw
+  resize();
+  const cW = W/window.devicePixelRatio, cH = H/window.devicePixelRatio;
+  drawSky(); drawGround();
+  const ph = makeHorse(); ph.y = ph.ground; ph.draw();
+})();
+</script>
+
+<!-- JUEGO -->
+<section id="juego" style="background:#1a1008;padding:5rem 2rem;">
+  <div style="max-width:860px;margin:0 auto;text-align:center;">
+    <span class="section-label" style="color:var(--sand);display:block;margin-bottom:0.4rem;">Mini Juego</span>
+    <h2 class="section-title" style="color:var(--cream);margin-bottom:0.3rem;">Carrera de <em style="color:var(--sand)">Barriles</em></h2>
+    <p style="color:rgba(245,239,224,0.55);font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:1.8rem;">
+      Presiona <kbd style="background:rgba(255,255,255,0.1);color:var(--sand);padding:0.2rem 0.6rem;border-radius:3px;font-size:0.85rem;">ESPACIO</kbd> o toca la pantalla para saltar los barriles
+    </p>
+
+    <div style="position:relative;display:inline-block;width:100%;">
+      <canvas id="barrelCanvas" width="820" height="220"
+        style="width:100%;border-radius:8px;cursor:pointer;display:block;background:#2a1a08;">
+      </canvas>
+      <!-- Overlay inicio -->
+      <div id="gameOverlay" style="
+        position:absolute;inset:0;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        background:rgba(15,8,3,0.75);border-radius:8px;">
+        <div style="font-size:3rem;margin-bottom:0.5rem;">🐴</div>
+        <p style="color:var(--cream);font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;">¡Carrera de Barriles!</p>
+        <p style="color:rgba(245,239,224,0.6);font-size:0.85rem;margin-bottom:1.2rem;">Salta los barriles y logra el mayor puntaje</p>
+        <button id="startBtn" style="
+          background:var(--earth);color:#fff;border:none;cursor:pointer;
+          font-family:'Raleway',sans-serif;font-size:0.8rem;font-weight:700;
+          letter-spacing:0.15em;text-transform:uppercase;
+          padding:0.8rem 2rem;border-radius:4px;">
+          🤠 JUGAR
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;gap:3rem;margin-top:1.2rem;">
+      <div style="text-align:center;">
+        <div id="scoreDisplay" style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--sand);font-weight:700;">0</div>
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,239,224,0.4);">Puntaje</div>
+      </div>
+      <div style="text-align:center;">
+        <div id="hiScoreDisplay" style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--sand);font-weight:700;">0</div>
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,239,224,0.4);">Mejor</div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -1343,6 +1787,268 @@ footer p{font-size:0.74rem;color:rgba(212,184,150,0.35);letter-spacing:0.05em;}
   </div>
 </section>
 
+<!-- JUEGO -->
+<section id="juego" style="background:var(--charcoal);padding:5rem 2rem;">
+  <div style="max-width:800px;margin:0 auto;text-align:center;">
+    <span class="section-label" style="color:var(--sand);display:block;margin-bottom:0.5rem;">Mini juego</span>
+    <h2 class="section-title" style="color:var(--cream);margin-bottom:0.5rem;">🏆 Carrera de <em style="color:var(--sand)">Barriles</em></h2>
+    <p style="color:rgba(245,239,224,0.6);font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:2rem;">Presiona <strong style="color:var(--sand)">ESPACIO</strong> o toca la pantalla para saltar. ¡Esquiva los barriles!</p>
+
+    <div id="game-container" style="position:relative;display:inline-block;border:2px solid rgba(212,184,150,0.3);border-radius:8px;overflow:hidden;cursor:pointer;">
+      <canvas id="barrelCanvas" width="780" height="220" style="display:block;background:#f5efe0;"></canvas>
+      <div id="game-overlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(44,28,12,0.82);transition:opacity 0.3s;">
+        <div style="font-size:3rem;margin-bottom:0.5rem;">🐴</div>
+        <p style="color:#f5efe0;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin:0 0 0.5rem;">¡A Correr!</p>
+        <p style="color:rgba(245,239,224,0.7);font-size:0.85rem;margin:0;">Espacio / Tap para comenzar</p>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;gap:3rem;margin-top:1.5rem;">
+      <div style="text-align:center;">
+        <div id="score-display" style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--sand);font-weight:700;">0</div>
+        <div style="font-size:0.7rem;color:rgba(245,239,224,0.5);letter-spacing:0.12em;text-transform:uppercase;">Puntos</div>
+      </div>
+      <div style="text-align:center;">
+        <div id="best-display" style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--sand);font-weight:700;">0</div>
+        <div style="font-size:0.7rem;color:rgba(245,239,224,0.5);letter-spacing:0.12em;text-transform:uppercase;">Mejor</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var canvas = document.getElementById('barrelCanvas');
+  var ctx    = canvas.getContext('2d');
+  var overlay = document.getElementById('game-overlay');
+  var scoreEl = document.getElementById('score-display');
+  var bestEl  = document.getElementById('best-display');
+
+  var W = canvas.width, H = canvas.height;
+  var GROUND = H - 30;
+  var best = 0, score = 0, frame = 0;
+  var running = false, dead = false, started = false;
+
+  // ── Horse ─────────────────────────────────────────────
+  var horse = {
+    x: 110, y: GROUND, w: 64, h: 54,
+    vy: 0, jumping: false, frame: 0,
+    jump: function(){
+      if(!this.jumping){ this.vy = -15; this.jumping = true; }
+    },
+    update: function(){
+      this.vy += 0.75;
+      this.y  += this.vy;
+      if(this.y >= GROUND){ this.y = GROUND; this.vy = 0; this.jumping = false; }
+      if(running) this.frame++;
+    },
+    draw: function(){
+      var f = Math.floor(this.frame/6) % 4;
+      var px = this.x, py = this.y - this.h;
+      // Body
+      ctx.fillStyle = '#c8a06a';
+      ctx.beginPath();
+      ctx.ellipse(px+30, py+34, 26, 16, 0, 0, Math.PI*2);
+      ctx.fill();
+      // Head
+      ctx.beginPath();
+      ctx.ellipse(px+52, py+18, 11, 9, 0.4, 0, Math.PI*2);
+      ctx.fill();
+      // Neck
+      ctx.fillRect(px+42, py+16, 10, 14);
+      // Eye
+      ctx.fillStyle='#3a2000';
+      ctx.beginPath();
+      ctx.arc(px+56, py+16, 2, 0, Math.PI*2);
+      ctx.fill();
+      // Nostril
+      ctx.fillStyle='#a07840';
+      ctx.beginPath();
+      ctx.arc(px+61, py+22, 1.5, 0, Math.PI*2);
+      ctx.fill();
+      // Mane
+      ctx.fillStyle='#8B4513';
+      ctx.beginPath();
+      ctx.arc(px+48, py+12, 5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px+42, py+14, 4, 0, Math.PI*2);
+      ctx.fill();
+      // Tail
+      ctx.strokeStyle='#8B4513'; ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.moveTo(px+4, py+28);
+      ctx.bezierCurveTo(px-10, py+20, px-14, py+38, px-6, py+48);
+      ctx.stroke();
+      // Legs animation
+      var offsets = [[0,0,0,0],[4,-4,−4,4],[0,0,0,0],[-4,4,4,-4]];
+      var lc = this.jumping ? [0,0,0,0] : (offsets[f] || [0,0,0,0]);
+      ctx.strokeStyle='#c8a06a'; ctx.lineWidth=5; ctx.lineCap='round';
+      var legs = [[px+16,py+44],[px+24,py+44],[px+34,py+44],[px+42,py+44]];
+      legs.forEach(function(l,i){
+        ctx.beginPath();
+        ctx.moveTo(l[0],l[1]);
+        ctx.lineTo(l[0]+(lc[i]||0), l[1]+22);
+        ctx.stroke();
+      });
+      // Rider
+      // Body
+      ctx.fillStyle='#3a5a8a';
+      ctx.fillRect(px+26, py+4, 14, 18);
+      // Head
+      ctx.fillStyle='#f4c89a';
+      ctx.beginPath();
+      ctx.arc(px+33, py+1, 7, 0, Math.PI*2);
+      ctx.fill();
+      // Hat
+      ctx.fillStyle='#8B4513';
+      ctx.fillRect(px+25,-1+py,16,4);
+      ctx.fillRect(px+28,-7+py,10,8);
+    }
+  };
+
+  // ── Barrels ───────────────────────────────────────────
+  var barrels = [];
+  var spawnTimer = 0, spawnInterval = 90;
+  var speed = 5;
+
+  function spawnBarrel(){
+    var h = 34 + Math.random()*20;
+    barrels.push({ x: W+10, w: 28, h: h, y: GROUND });
+  }
+
+  function drawBarrel(b){
+    var by = b.y - b.h, bx = b.x;
+    // Staves
+    ctx.fillStyle='#8B4513';
+    ctx.fillRect(bx, by, b.w, b.h);
+    ctx.fillStyle='#a0522d';
+    for(var i=0;i<4;i++) ctx.fillRect(bx+i*7+1, by, 5, b.h);
+    // Rings
+    ctx.fillStyle='#5a3a1a';
+    ctx.fillRect(bx-2, by+5, b.w+4, 5);
+    ctx.fillRect(bx-2, by+b.h-10, b.w+4, 5);
+    ctx.fillRect(bx-2, by+b.h/2-3, b.w+4, 5);
+    // Top ellipse
+    ctx.fillStyle='#c07040';
+    ctx.beginPath();
+    ctx.ellipse(bx+b.w/2, by+4, b.w/2, 5, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // ── Ground & clouds ───────────────────────────────────
+  var groundOffset = 0;
+  var clouds = [{x:200,y:40,s:1},{x:500,y:60,s:0.7},{x:700,y:35,s:1.2}];
+
+  function drawGround(){
+    ctx.fillStyle='#c4a882';
+    ctx.fillRect(0, GROUND+2, W, 28);
+    ctx.strokeStyle='#a08060'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,GROUND+2); ctx.lineTo(W,GROUND+2); ctx.stroke();
+    // Dashes
+    ctx.strokeStyle='#b09070'; ctx.lineWidth=1;
+    for(var i=0;i<8;i++){
+      var x = ((groundOffset*0.5 + i*100) % (W+10));
+      ctx.beginPath(); ctx.moveTo(x, GROUND+14); ctx.lineTo(x+40, GROUND+14); ctx.stroke();
+    }
+  }
+
+  function drawCloud(c){
+    ctx.fillStyle='rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 22*c.s, 0, Math.PI*2);
+    ctx.arc(c.x+28*c.s, c.y-6*c.s, 16*c.s, 0, Math.PI*2);
+    ctx.arc(c.x+50*c.s, c.y, 20*c.s, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // ── Collision ─────────────────────────────────────────
+  function collides(b){
+    var hx = horse.x+12, hy = horse.y - horse.h + 8;
+    var hw = horse.w-24, hh = horse.h-12;
+    return hx < b.x+b.w && hx+hw > b.x && hy < b.y && hy+hh > b.y-b.h;
+  }
+
+  // ── Game loop ─────────────────────────────────────────
+  function loop(){
+    if(!running){ return; }
+    requestAnimationFrame(loop);
+    ctx.clearRect(0,0,W,H);
+
+    // Sky gradient
+    var g = ctx.createLinearGradient(0,0,0,GROUND);
+    g.addColorStop(0,'#d4e8f5'); g.addColorStop(1,'#f5efe0');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,GROUND+2);
+
+    // Clouds
+    groundOffset += speed*0.3;
+    clouds.forEach(function(c){
+      c.x -= speed*0.2;
+      if(c.x < -80) c.x = W+80;
+      drawCloud(c);
+    });
+
+    drawGround();
+
+    // Barrels
+    spawnTimer++;
+    if(spawnTimer >= spawnInterval){
+      spawnBarrel();
+      spawnTimer = 0;
+      spawnInterval = Math.max(45, spawnInterval - 1);
+    }
+    barrels = barrels.filter(function(b){ return b.x > -50; });
+    barrels.forEach(function(b){
+      b.x -= speed;
+      drawBarrel(b);
+      if(collides(b)){ die(); }
+    });
+
+    horse.update();
+    horse.draw();
+
+    // Score
+    if(frame % 6 === 0){ score++; speed = 5 + Math.floor(score/30)*0.4; }
+    frame++;
+    if(score > best){ best = score; bestEl.textContent = best; }
+    scoreEl.textContent = score;
+  }
+
+  function die(){
+    running = false; dead = true;
+    overlay.style.display='flex';
+    overlay.style.opacity='1';
+    overlay.innerHTML =
+      '<div style="font-size:3rem;margin-bottom:0.5rem;">💥</div>'
+      +'<p style="color:#f5efe0;font-family:Playfair Display,serif;font-size:1.4rem;font-weight:700;margin:0 0 0.3rem;">¡Golpeaste un barril!</p>'
+      +'<p style="color:rgba(245,239,224,0.7);font-size:1rem;margin:0 0 0.5rem;">Puntos: <strong style=color:var(--sand)>'+score+'</strong></p>'
+      +'<p style="color:rgba(245,239,224,0.55);font-size:0.82rem;margin:0;">Espacio / Tap para reintentar</p>';
+  }
+
+  function start(){
+    barrels=[]; score=0; frame=0; spawnTimer=0; spawnInterval=90; speed=5;
+    horse.y=GROUND; horse.vy=0; horse.jumping=false; horse.frame=0;
+    running=true; dead=false; started=true;
+    overlay.style.opacity='0';
+    setTimeout(function(){ overlay.style.display='none'; },300);
+    loop();
+  }
+
+  function jump(){
+    if(!started || dead){ start(); return; }
+    horse.jump();
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(e.code==='Space'){ e.preventDefault(); jump(); }
+  });
+  document.getElementById('game-container').addEventListener('click', jump);
+  document.getElementById('game-container').addEventListener('touchstart', function(e){
+    e.preventDefault(); jump();
+  }, {passive:false});
+})();
+</script>
+
 <!-- FOOTER -->
 <footer>
   <a href="#inicio" class="footer-brand">
@@ -1414,6 +2120,100 @@ function enviarWhatsApp() {
 
   window.open('https://wa.me/526861708868?text=' + encodeURIComponent(texto), '_blank');
 }
+
+
+(function(){
+  var canvas=document.getElementById("barrelCanvas");
+  if(!canvas)return;
+  var ctx=canvas.getContext("2d");
+  var overlay=document.getElementById("gameOverlay");
+  var scoreEl=document.getElementById("scoreDisplay");
+  var hiEl=document.getElementById("hiScoreDisplay");
+  var W=canvas.width,H=canvas.height,GND=H-38;
+  var running=false,score=0,hiScore=0,frames=0;
+  var barrels=[],gameSpeed=4,nextBarrel=90,particles=[],groundOffset=0;
+  var clouds=[{x:200,y:30,s:1},{x:500,y:55,s:0.7},{x:720,y:20,s:1.2}];
+  var horse={x:110,y:GND,w:62,h:48,vy:0,jumping:false,doubleJump:false,legPhase:0};
+  horse.jump=function(){if(!this.jumping){this.vy=-13.5;this.jumping=true;this.doubleJump=false;}else if(!this.doubleJump){this.vy=-11;this.doubleJump=true;}};
+  horse.update=function(){this.vy+=0.72;this.y+=this.vy;if(this.y>=GND){this.y=GND;this.vy=0;this.jumping=false;this.doubleJump=false;}if(running)this.legPhase+=0.28;};
+  horse.draw=function(){
+    var bx=this.x,by=this.y-this.h,t=this.legPhase,self=this;
+    ctx.fillStyle="rgba(0,0,0,0.15)";ctx.beginPath();ctx.ellipse(bx+20,GND+6,26,5,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#c47a3a";ctx.lineWidth=4.5;ctx.lineCap="round";
+    [{ox:8,ph:0},{ox:18,ph:Math.PI},{ox:28,ph:Math.PI*.5},{ox:38,ph:Math.PI*1.5}].forEach(function(l){
+      var sw=Math.sin(t+l.ph)*(self.jumping?6:9),kx=bx+l.ox,ky=by+self.h-10;
+      ctx.beginPath();ctx.moveTo(kx,ky);ctx.quadraticCurveTo(kx+sw*.5,ky+12,kx+sw,ky+22);ctx.stroke();
+    });
+    ctx.fillStyle="#d4853e";ctx.beginPath();ctx.ellipse(bx+22,by+this.h*.5,26,17,-0.12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#e8a060";ctx.beginPath();ctx.ellipse(bx+22,by+this.h*.55,16,9,-0.12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#d4853e";ctx.beginPath();ctx.moveTo(bx+38,by+10);ctx.lineTo(bx+50,by+2);ctx.lineTo(bx+56,by+16);ctx.lineTo(bx+42,by+22);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#c4743a";ctx.beginPath();ctx.ellipse(bx+56,by+12,13,10,0.3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#8B3A10";ctx.beginPath();ctx.ellipse(bx+66,by+16,2.5,2,0.3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#1a0a00";ctx.beginPath();ctx.arc(bx+58,by+9,2.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(bx+57.5,by+8.5,1,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#7a3a10";ctx.lineWidth=3;
+    for(var i=0;i<5;i++){var mx=bx+40+i*3,my=by+2+i*2,wv=Math.sin(t*1.5+i)*3;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+wv-4,my-8);ctx.stroke();}
+    ctx.strokeStyle="#9b4a18";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(bx-2,by+8);var tw=Math.sin(t*1.2)*8;ctx.quadraticCurveTo(bx-18,by+18+tw,bx-10,by+36+tw*.5);ctx.stroke();
+    ctx.fillStyle="#5a2a08";ctx.beginPath();ctx.ellipse(bx+20,by+this.h*.35,12,7,-0.1,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#3a1a02";ctx.fillRect(bx+14,by+this.h*.2,16,5);
+    ctx.fillStyle="#c8a060";ctx.fillRect(bx+12,by+this.h*.22,20,3);
+  };
+  function Barrel(x){this.x=x;this.w=34;this.h=40;this.y=GND-40;}
+  Barrel.prototype.update=function(sp){this.x-=sp;};
+  Barrel.prototype.hitbox=function(){return{x:this.x+5,y:this.y+3,w:this.w-10,h:this.h-3};};
+  Barrel.prototype.draw=function(){
+    var bx=this.x,by=this.y,h=this.h;
+    ctx.fillStyle="rgba(0,0,0,0.15)";ctx.beginPath();ctx.ellipse(bx+17,GND+5,18,4,0,0,Math.PI*2);ctx.fill();
+    var g=ctx.createLinearGradient(bx,by,bx+this.w,by);g.addColorStop(0,"#b83030");g.addColorStop(0.4,"#e84040");g.addColorStop(1,"#902020");
+    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(bx+4,by);ctx.lineTo(bx+30,by);ctx.quadraticCurveTo(bx+36,by+h*.5,bx+30,by+h);ctx.lineTo(bx+4,by+h);ctx.quadraticCurveTo(bx-2,by+h*.5,bx+4,by);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#7a1818";ctx.lineWidth=3;
+    [0.18,0.5,0.82].forEach(function(p){ctx.beginPath();ctx.moveTo(bx+2,by+h*p);ctx.quadraticCurveTo(bx+17,by+h*p+4,bx+32,by+h*p);ctx.stroke();});
+  };
+  function collides(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+  function drawGround(sp){
+    groundOffset=(groundOffset+sp)%40;
+    var sky=ctx.createLinearGradient(0,0,0,GND);sky.addColorStop(0,"#1a0e06");sky.addColorStop(1,"#3d2008");
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,GND);ctx.fillStyle="#5c3210";ctx.fillRect(0,GND,W,H-GND);
+    ctx.fillStyle="#6b3f1a";ctx.fillRect(0,GND,W,6);
+    ctx.fillStyle="rgba(0,0,0,0.2)";
+    for(var x=-40;x<W+40;x+=40){var rx=((x-groundOffset+W*10)%W);ctx.beginPath();ctx.arc(rx+10,GND+15,2,0,Math.PI*2);ctx.fill();}
+    ctx.strokeStyle="rgba(212,180,100,0.2)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,GND);ctx.lineTo(W,GND);ctx.stroke();
+  }
+  function drawClouds(){
+    clouds.forEach(function(c){c.x-=0.4*c.s;if(c.x<-100)c.x=W+100;ctx.fillStyle="rgba(255,245,220,0.07)";ctx.beginPath();ctx.arc(c.x,c.y,30*c.s,0,Math.PI*2);ctx.arc(c.x+22*c.s,c.y-10*c.s,22*c.s,0,Math.PI*2);ctx.arc(c.x+40*c.s,c.y,18*c.s,0,Math.PI*2);ctx.fill();});
+  }
+  function spawnDust(){for(var i=0;i<2;i++)particles.push({x:horse.x+5,y:GND,vx:(Math.random()-.8)*2,vy:-(Math.random()*2),life:1,r:Math.random()*4+2});}
+  function updateParticles(){particles=particles.filter(function(p){return p.life>0;});particles.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.life-=0.06;ctx.globalAlpha=p.life*0.4;ctx.fillStyle="#c8a060";ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;}
+  function drawHUD(){ctx.fillStyle="rgba(245,239,224,0.85)";ctx.font="bold 15px sans-serif";ctx.textAlign="left";ctx.fillText("Mejor: "+hiScore,14,26);ctx.textAlign="right";ctx.fillText("Pts: "+score,W-14,26);}
+  function reset(){barrels=[];score=0;frames=0;gameSpeed=4;nextBarrel=90;horse.y=GND;horse.vy=0;horse.jumping=false;horse.legPhase=0;particles=[];scoreEl.textContent="0";}
+  function showGameOver(){
+    running=false;if(score>hiScore){hiScore=score;hiEl.textContent=hiScore;}
+    overlay.style.display="flex";
+    overlay.innerHTML="<div style='font-size:1.8rem;margin-bottom:6px'>Chocaste un barril!</div>"
+      +"<p style='color:rgba(245,239,224,0.7);font-size:0.9rem;margin-bottom:10px'>Puntaje: <b style='color:#d4a04a'>"+score+"</b>"+(score>=hiScore?" &#127942; Nuevo record!":"")+"</p>"
+      +"<button id='startBtn' style='background:#8B5E3C;color:#fff;border:none;cursor:pointer;padding:10px 28px;border-radius:4px;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase'>INTENTAR DE NUEVO</button>";
+    document.getElementById("startBtn").addEventListener("click",startGame);
+  }
+  function loop(){
+    if(!running)return;ctx.clearRect(0,0,W,H);
+    gameSpeed=Math.min(4+Math.floor(frames/300)*.5+(frames/800),13);
+    drawGround(gameSpeed);drawClouds();
+    if(--nextBarrel<=0){barrels.push(new Barrel(W+20));nextBarrel=Math.max(55,110-Math.floor(frames/200)*5)+Math.random()*40;}
+    barrels=barrels.filter(function(b){return b.x>-60;});
+    barrels.forEach(function(b){b.update(gameSpeed);b.draw();});
+    if(!horse.jumping&&frames%3===0)spawnDust();
+    updateParticles();horse.update();horse.draw();
+    var hb={x:horse.x+14,y:horse.y-horse.h+12,w:horse.w-28,h:horse.h-16};
+    for(var i=0;i<barrels.length;i++){if(collides(hb,barrels[i].hitbox())){showGameOver();return;}}
+    frames++;if(frames%6===0){score++;scoreEl.textContent=score;}if(score>hiScore){hiScore=score;hiEl.textContent=hiScore;}
+    drawHUD();requestAnimationFrame(loop);
+  }
+  function startGame(){overlay.style.display="none";reset();running=true;requestAnimationFrame(loop);}
+  document.addEventListener("keydown",function(e){if(e.code==="Space"){e.preventDefault();if(running)horse.jump();}});
+  canvas.addEventListener("touchstart",function(e){e.preventDefault();if(running)horse.jump();},{passive:false});
+  canvas.addEventListener("click",function(){if(running)horse.jump();});
+  var sb=document.getElementById("startBtn");if(sb)sb.addEventListener("click",startGame);
+})();
 </script>
 </body>
 </html>
